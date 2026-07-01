@@ -10,7 +10,7 @@ Villaverse Earning is a modern digital engagement marketplace where advertisers 
 ## Frontend (web)
 
 ```bash
-cd /home/runner/work/villaverse/villaverse/web
+cd web
 npm install
 npm run dev
 ```
@@ -18,7 +18,7 @@ npm run dev
 ## Backend (api)
 
 ```bash
-cd /home/runner/work/villaverse/villaverse/api
+cd api
 cp .env.example .env
 npm install
 npm run prisma:generate
@@ -28,7 +28,7 @@ npm run dev
 ## Prisma + Database
 
 ```bash
-cd /home/runner/work/villaverse/villaverse/api
+cd api
 npm run prisma:migrate -- --name init
 npm run prisma:seed
 ```

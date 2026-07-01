@@ -79,6 +79,7 @@ model User {
   isSuspended      Boolean  @default(false)
   isBanned         Boolean  @default(false)
   wallet           Wallet?
+  advertiser       Advertiser?
   campaigns        Campaign[]
   submissions      TaskSubmission[]
   withdrawals      Withdrawal[]
