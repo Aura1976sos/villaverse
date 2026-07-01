@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #f8f9ff;
+  --surface: #ffffffcc;
+  --surface-solid: #ffffff;
+  --text: #0f172a;
+  --muted: #475569;
+  --primary: #4f46e5;
+  --secondary: #10b981;
+  --accent: #f59e0b;
+  --ring: #4f46e533;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b1020;
+    --surface: #0f172aa8;
+    --surface-solid: #0f172a;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --ring: #818cf866;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at top right, #4f46e526 0%, transparent 40%),
+    radial-gradient(circle at bottom left, #10b9811f 0%, transparent 40%),
+    var(--bg);
+  color: var(--text);
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: "Poppins", "Inter", "Segoe UI", Arial, sans-serif;
+}
+
+.glass {
+  background: var(--surface);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--ring);
+  box-shadow: 0 18px 45px #0206171a;
+}
