@@ -1,0 +1,257 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADVERTISER
+  EARNER
+}
+
+enum CampaignStatus {
+  DRAFT
+  PENDING_APPROVAL
+  ACTIVE
+  PAUSED
+  COMPLETED
+  REJECTED
+}
+
+enum TaskStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+}
+
+enum SubmissionStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  FLAGGED
+}
+
+enum WithdrawalStatus {
+  PENDING
+  PROCESSING
+  APPROVED
+  PAID
+  REJECTED
+}
+
+enum TransactionType {
+  TASK_REWARD
+  REFERRAL_REWARD
+  BONUS
+  WITHDRAWAL
+  REFUND
+  FUNDING
+  FEE
+}
+
+model Role {
+  id          String @id @default(cuid())
+  name        UserRole @unique
+  description String?
+  users       User[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model User {
+  id               String   @id @default(cuid())
+  fullName         String
+  email            String   @unique
+  phone            String?  @unique
+  passwordHash     String
+  roleId           String
+  role             Role     @relation(fields: [roleId], references: [id])
+  isEmailVerified  Boolean  @default(false)
+  isPhoneVerified  Boolean  @default(false)
+  twoFactorEnabled Boolean  @default(false)
+  trustScore       Int      @default(50)
+  levelBadge       String   @default("Bronze")
+  isSuspended      Boolean  @default(false)
+  isBanned         Boolean  @default(false)
+  wallet           Wallet?
+  campaigns        Campaign[]
+  submissions      TaskSubmission[]
+  withdrawals      Withdrawal[]
+  referredById     String?
+  referredBy       User?     @relation("Referrals", fields: [referredById], references: [id])
+  referrals        User[]    @relation("Referrals")
+  notifications    Notification[]
+  fraudReports     FraudReport[]
+  activityLogs     ActivityLog[]
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model Advertiser {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id])
+  companyName  String
+  website      String?
+  isVerified   Boolean  @default(false)
+  campaigns    Campaign[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Campaign {
+  id               String         @id @default(cuid())
+  advertiserId     String
+  advertiser       Advertiser     @relation(fields: [advertiserId], references: [id])
+  ownerId          String
+  owner            User           @relation(fields: [ownerId], references: [id])
+  name             String
+  description      String
+  budget           Decimal        @db.Decimal(18, 2)
+  rewardPerTask    Decimal        @db.Decimal(18, 2)
+  completionLimit  Int
+  startDate        DateTime
+  endDate          DateTime
+  status           CampaignStatus @default(DRAFT)
+  tasks            Task[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+model Task {
+  id              String      @id @default(cuid())
+  campaignId      String
+  campaign        Campaign    @relation(fields: [campaignId], references: [id])
+  title           String
+  description     String
+  category        String
+  proofType       String
+  status          TaskStatus  @default(ACTIVE)
+  reward          Decimal     @db.Decimal(18, 2)
+  submissions     TaskSubmission[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model TaskSubmission {
+  id            String           @id @default(cuid())
+  taskId         String
+  userId         String
+  proofUrl       String?
+  proofText      String?
+  aiScore        Float?
+  status         SubmissionStatus @default(PENDING)
+  reviewedById   String?
+  reviewerNotes  String?
+  task           Task            @relation(fields: [taskId], references: [id])
+  user           User            @relation(fields: [userId], references: [id])
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@unique([taskId, userId])
+}
+
+model Wallet {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id])
+  earningsBalance  Decimal  @default(0) @db.Decimal(18, 2)
+  pendingBalance   Decimal  @default(0) @db.Decimal(18, 2)
+  referralBalance  Decimal  @default(0) @db.Decimal(18, 2)
+  bonusBalance     Decimal  @default(0) @db.Decimal(18, 2)
+  transactions     Transaction[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Transaction {
+  id            String          @id @default(cuid())
+  walletId       String
+  wallet         Wallet         @relation(fields: [walletId], references: [id])
+  type           TransactionType
+  amount         Decimal         @db.Decimal(18, 2)
+  reference      String          @unique
+  description    String?
+  createdAt      DateTime        @default(now())
+}
+
+model Withdrawal {
+  id              String           @id @default(cuid())
+  userId           String
+  user             User             @relation(fields: [userId], references: [id])
+  amount           Decimal          @db.Decimal(18, 2)
+  method           String
+  fee              Decimal          @default(0) @db.Decimal(18, 2)
+  status           WithdrawalStatus @default(PENDING)
+  processedById    String?
+  notes            String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+}
+
+model Referral {
+  id              String   @id @default(cuid())
+  referrerId      String
+  referredUserId  String   @unique
+  level           Int
+  commissionRate  Float
+  createdAt       DateTime @default(now())
+}
+
+model Notification {
+  id          String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  title        String
+  message      String
+  channel      String
+  isRead       Boolean  @default(false)
+  createdAt    DateTime @default(now())
+}
+
+model FraudReport {
+  id            String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  reason         String
+  severity       String
+  status         String   @default("OPEN")
+  metadata       Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  userId       String?
+  user         User?    @relation(fields: [userId], references: [id])
+  action       String
+  resource     String
+  details      Json?
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime @default(now())
+}
+
+model CmsPage {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  content     Json
+  published   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Setting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
