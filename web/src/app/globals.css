@@ -34,14 +34,14 @@ body {
     radial-gradient(circle at bottom left, #10b9811f 0%, transparent 40%),
     var(--bg);
   color: var(--text);
-  font-family: var(--font-inter), sans-serif;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
 }
 
 h1,
 h2,
 h3,
 h4 {
-  font-family: var(--font-poppins), sans-serif;
+  font-family: "Poppins", "Inter", "Segoe UI", Arial, sans-serif;
 }
 
 .glass {

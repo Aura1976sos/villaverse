@@ -1,6 +1,6 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import jwt, { type SignOptions } from "jsonwebtoken";
 import { z } from "zod";
 
 import { env } from "../config/env.js";
@@ -48,7 +48,7 @@ authRouter.post("/login", async (req, res) => {
   }
 
   const token = jwt.sign({ id: user.id, role: user.role }, env.jwtSecret, {
-    expiresIn: env.jwtExpiresIn,
+    expiresIn: env.jwtExpiresIn as SignOptions["expiresIn"],
   });
 
   return res.json({
